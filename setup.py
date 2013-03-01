@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'temps',
-    version = '0.1.0',
+    version = '0.2.0',
     license = 'MIT',
     description = 'Context managers for creating and cleaning up temporary directories and files.',
     long_description = open(os.path.join(os.path.dirname(__file__),

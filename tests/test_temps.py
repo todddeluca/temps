@@ -25,5 +25,13 @@ def test_tmpdir():
     assert not os.path.exists(td)
 
 
+def test_tmppath():
+    path = temps.tmppath()
+    assert not os.path.exists(path)
+    try:
+        os.mkdir(path)
+    finally:
+        if os.path.isdir(path):
+            os.rmdir(path)
 
 

@@ -74,16 +74,21 @@ TEMPS_MODE = int(os.environ.get('TEMPS_MODE', '0777'), 8)
 @contextlib.contextmanager
 def tmpfile(root=TEMPS_DIR, prefix=TEMPS_PREFIX, suffix=TEMPS_SUFFIX):
     '''
-    For use in a with statement, this function yields a path directly under
-    root guaranteed to be unique by using the uuid module.  This path
-    is not created.  However if the path is an existing file when the with
-    statement is exited, the file will be removed.
+    For use in a with statement, this function returns a context manager that
+    yields a path directly under root guaranteed to be unique by using the uuid
+    module.  This path is not created.  However if the path is an existing file
+    when the with statement is exited, the file will be removed.
 
     This function is useful if you want to use a file temporarily but do not
     want to write boilerplate to make sure it is removed when you are done with
     it.
+
+    Example:
+
+        with temps.tmpfile() as path:
+            do_stuff(path)
     '''
-    path = _tmppath(root, prefix, suffix)
+    path = tmppath(root, prefix, suffix)
     try:
         yield path
     finally:
@@ -100,17 +105,24 @@ def tmpdir(root=TEMPS_DIR, prefix=TEMPS_PREFIX, suffix=TEMPS_SUFFIX,
     set to `mode` using os.chmod.  By default, `mode` is altered by the current
     umask.
 
-    For use in a with statement, this function makes and a directory directly
-    under root with the given mode that is guaranteed to be uniquely named by
-    using the uuid module.  Then it yields the directory path.  When the with
-    statement is exited the directory and everything under it will be removed.
+    For use in a with statement, this function returns a context manager that
+    makes and a directory directly under root with the given mode that is
+    guaranteed to be uniquely named by using the uuid module.  Then it yields
+    the directory path.  When the context is exited the directory and
+    everything under it will be removed.
 
     This function is useful if you need an isolated place to do some temporary
     work with files and dirs without worrying about naming conflicts and
     without having to write boilerplate and error handling to make sure the
     directory is cleaned up.
+
+    Example:
+
+        with temps.tmpdir() as workingdir:
+            do_this(workingdir)
+            do_that(workingdir)
     '''
-    path = _tmppath(root, prefix, suffix)
+    path = tmppath(root, prefix, suffix)
     os.makedirs(path, mode=mode)
     if not use_umask:
         os.chmod(path, mode)
@@ -121,7 +133,7 @@ def tmpdir(root=TEMPS_DIR, prefix=TEMPS_PREFIX, suffix=TEMPS_SUFFIX,
         shutil.rmtree(path)
 
 
-def _tmppath(root=TEMPS_DIR, prefix=TEMPS_PREFIX, suffix=TEMPS_SUFFIX):
+def tmppath(root=TEMPS_DIR, prefix=TEMPS_PREFIX, suffix=TEMPS_SUFFIX):
     '''
     Returns a path directly under root that is guaranteed to be unique by
     using the uuid module.
