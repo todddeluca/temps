@@ -88,7 +88,7 @@ otherwise.  Here is a table listing the variable, the environment variable
 checked, and the default value:
 
     Variable, ENV_VAR, Default
-    TEMPS_DIR, TEMPS_DIR, os.cwd()
+    TEMPS_DIR, TEMPS_DIR, tempfile.gettempdir()
     TEMPS_PREFIX, TEMPS_PREFIX, ''
     TEMPS_SUFFIX, TEMPS_SUFFIX, ''
     TEMPS_MODE, TEMPS_MODE, '0777'

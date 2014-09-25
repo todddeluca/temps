@@ -2,9 +2,23 @@
 import os
 from setuptools import setup, find_packages
 
+def version(modfile):
+    '''
+    Parse version from module without importing or evaluating the code.
+    The module should define a __version__ variable like __version__ = '2.0.1'.
+    '''
+    import re
+    with open(modfile) as fh:
+        for line in fh:
+            m = re.search(r"^__version__ = '([^']+)'$", line)
+            if m:
+                return m.group(1)
+    raise Exception('No __version__ string found in {fn}'.format(fn=modfile))
+
+
 setup(
     name = 'temps',
-    version = '0.2.0',
+    version = version('temps.py'),
     license = 'MIT',
     description = 'Context managers for creating and cleaning up temporary directories and files.',
     long_description = open(os.path.join(os.path.dirname(__file__),
