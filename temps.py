@@ -62,11 +62,12 @@ import contextlib
 import os
 import shutil
 import uuid
+from tempfile import gettempdir
 
 
 # SET THE DEFAULTS
 
-TEMPS_DIR = os.environ.get('TEMPS_DIR') or os.getcwd()
+TEMPS_DIR = os.environ.get('TEMPS_DIR') or gettempdir()
 TEMPS_PREFIX = os.environ.get('TEMPS_PREFIX', '')
 TEMPS_SUFFIX = os.environ.get('TEMPS_SUFFIX', '')
 TEMPS_MODE = int(os.environ.get('TEMPS_MODE', '0777'), 8)
