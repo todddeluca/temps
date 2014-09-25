@@ -62,15 +62,23 @@ import contextlib
 import os
 import shutil
 import uuid
-from tempfile import gettempdir
+import tempfile
+
+
+def _set_temps_dir(env=os.environ):
+    '''
+    To ease testing, this function returns the value that
+    TEMPS_DIR will be set to with the given environment.
+    '''
+    return os.environ.get('TEMPS_DIR') or tempfile.gettempdir()
 
 
 # SET THE DEFAULTS
-
-TEMPS_DIR = os.environ.get('TEMPS_DIR') or gettempdir()
+TEMPS_DIR = _set_temps_dir()
 TEMPS_PREFIX = os.environ.get('TEMPS_PREFIX', '')
 TEMPS_SUFFIX = os.environ.get('TEMPS_SUFFIX', '')
 TEMPS_MODE = int(os.environ.get('TEMPS_MODE', '0777'), 8)
+
 
 @contextlib.contextmanager
 def tmpfile(root=TEMPS_DIR, prefix=TEMPS_PREFIX, suffix=TEMPS_SUFFIX):

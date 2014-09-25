@@ -1,10 +1,26 @@
 import temps
 import os
-from subprocess import Popen
-from subprocess import PIPE
-from nose.tools import eq_
-from tempfile import gettempdir
-from shutil import rmtree
+import tempfile
+import contextlib
+
+
+@contextlib.contextmanager
+def environ_cm(var, val):
+    '''
+    Set an environment variable to a specific value temporarily.
+    When done, if there was a preexisting value, reset it to that.
+    Otherwise, delete the temporary env var.
+    '''
+    existing = os.environ.get(var)
+    try:
+        os.environ[var] = val
+        yield
+    finally:
+        if existing is None:
+            del os.environ[var]
+        else:
+            os.environ[var] = existing
+
 
 def test_tmpfile():
     with temps.tmpfile() as path:
@@ -36,50 +52,26 @@ def test_tmppath():
         if os.path.isdir(path):
             os.rmdir(path)
 
-class TestTempsDir:
-    def _popen(self, overrides=None):
-        """
-        :type override: (str, str)
-        :param override: (var, val)
-        """
 
-        if not overrides:
-            overrides = []
+def test_temps_env_var_fallback():
+    '''
+    Test that temps uses `gettempdir` when given no TEMPS_DIR env var
+    '''
+    with environ_cm('TEMPS_DIR', ''):
+        print 'test_pure_fallback'
+        print temps._set_temps_dir()
+        print tempfile.gettempdir()
+        assert temps._set_temps_dir() == tempfile.gettempdir()
 
-        p = Popen(
-            ["env", "-i"]
-            + ["=".join(xs) for xs in overrides]
-            + ["python", "-c", "import temps; print temps.TEMPS_DIR;"]
-            , stdout=PIPE, stderr=PIPE
-        )
-        out, _ = p.communicate()
-        return out.strip()
 
-    def setUp(self):
-        self.tmpdir = '/tmp/foo'
-        os.makedirs(self.tmpdir)
-        # L{tempfile.gettempdir} checks wheter the dir is
-        # readable/writable, if not it continues fallbacking
+def test_temps_env_var_override():
+    '''
+    Test that temps uses the env var TEMPS_DIR when it is set.
+    '''
+    d = '/temps_test_tmp_2'
+    with environ_cm('TEMPS_DIR', d):
+        print 'test_temps_env_var'
+        print temps._set_temps_dir()
+        print d
+        assert temps._set_temps_dir() == d
 
-    def tearDown(self):
-        rmtree(self.tmpdir)
-
-    def test_pure_fallback(self):
-        """
-        Test we get the `gettempdir`s platform specific fallback when
-        give no env overrides
-        """
-        eq_(self._popen(), gettempdir())
-
-    def test_gettempdir_env_var(self):
-        """
-        Test we get an override handled by `gettempdir`
-        """
-        eq_(self._popen([("TMP", self.tmpdir)]), self.tmpdir)
-
-    def test_temps_env_var(self):
-        """
-        Test we get an override for temps itself
-        """
-        v = "/foo2"
-        eq_(self._popen(dict(TMP = self.tmpdir, TEMPS_DIR = v).items()), v)
